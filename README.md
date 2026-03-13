@@ -9,7 +9,7 @@ Use of AI will be none.
 [ TO DO : ADD ALL THE NECESSARY PROGRAM USED ]
 
 ### Libraries/Headers
-
+- cJSON [doc](https://github.com/DaveGamble/cJSON) / [other useful link](https://www.geeksforgeeks.org/c/cjson-json-file-write-read-modify-in-c/)
 [ TO DO : ADD ALL THE LIBRARIES AND HEADERS ]
 
 ### STANDARDS
