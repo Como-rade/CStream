@@ -8,7 +8,8 @@ int main(void){
     //get_request_list((char*)isfiddy);
     //void *lol;
     //printf("size of lol : %ld\n", sizeof(lol));
-    show_list();
+    //show_list();
+    get_user_input();
 
     return 0;
 }
