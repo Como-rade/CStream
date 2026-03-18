@@ -1,9 +1,4 @@
 #include "request.h"
-#include <curl/curl.h>
-#include <stdlib.h>
-#include <string.h>
-#include "cJSON.h"
-#include <ctype.h>
 
 struct memory {
   char *response;
@@ -17,7 +12,7 @@ static size_t cb(char *data, size_t size, size_t nmemb, void *clientp)
 
   char *ptr = realloc(mem->response, mem->size + realsize + 1);
   if(!ptr)
-    return 0;  /* out of memory */
+    return 0;
 
   mem->response = ptr;
   memcpy(&(mem->response[mem->size]), data, realsize);
@@ -26,40 +21,31 @@ static size_t cb(char *data, size_t size, size_t nmemb, void *clientp)
   return realsize;
 }
 
+void get_url(const long int id, const char * const option){
+    char url[1024] = "xdg-open https://www.vidking.net/embed/";
+    char its[10] = {0};
+    sprintf(its, "%ld", id);
+    if(!strcasecmp(option, OPTION_MOVIE)){
+        strcat(url, option);
+        url[strlen(url)] = '/';
+        strcat(url, its);
+        strcat(url, "?autoPlay=true");
+        url[strlen(url)] = '\0';
+        printf("%s\n", url);
+        system(url);
+    }
+
+}
+
 void string_clean(char *string){
     fgets(string, INPUT_LENGTH, stdin);
     string[strlen(string)-1] ='\0';
-    //printf("%s\n", string);
 }
 
 void string_to_query(char *string, char *query){
     char hex[16] = {0};
-    /*sprintf(hex, "%x", '@');
-    printf("lol is%s\n", hex);*/
     for(int i = 0; string[i] != '\0'; i++){
         switch(string[i]){
-            /*case ' ': strcat(query, "%20");
-                      break;
-            case '*': strcat(query, "%2A");
-                      break;
-            case '+': strcat(query, "%2B");
-                      break;
-            case '#': strcat(query, "%23");
-                      break;
-            case '$': strcat(query, "%24");
-                      break;
-            case '!': strcat(query, "%21");
-                      break;
-            case '(': strcat(query, "%28");
-                      break;
-            case ')': strcat(query, "%29");
-                      break;
-            case '<': strcat(query, "%3C");
-                      break;
-            case '>': strcat(query, "%3E");
-                      break;
-            case '@': strcat(query, "%40");
-                      break;*/
             case (char)-73: strcat(query, "%B7");
                             break;
             case (char)-62: strcat(query, "%C2");
@@ -76,7 +62,6 @@ void string_to_query(char *string, char *query){
         }
     }
     memset(hex, 0, strlen(hex));
-    printf("%s\n", query);
 }
 
 void make_full_url(char *option, char *query, char *url){
@@ -89,24 +74,34 @@ void get_user_input(){
     char query[INPUT_LENGTH] = "?query=";
     char choice_input[INPUT_LENGTH] = {0};
     char name_input[INPUT_LENGTH] = {0};
-    
-    printf("Would you like to search for a TV show or movie?"
-            "(type tv or movie)\n");
-    string_clean(choice_input);
-    printf("%d\n%d\n",strcasecmp(choice_input, OPTION_MOVIE),strcasecmp(choice_input, OPTION_TV_SHOW));
-    while(strcasecmp(choice_input, OPTION_MOVIE) && strcasecmp(choice_input, OPTION_TV_SHOW)){
-        printf("Choose a valid option. Type tv or move.\n");
-        memset(choice_input, 0, sizeof(choice_input));
-        string_clean(choice_input);
-    }
-    printf("%s\n", choice_input);
 
-    printf("Enter the name of the %s\n", (strcasecmp(choice_input, OPTION_MOVIE)? "tv show" : "movie" ));
-    string_clean(name_input);
-    string_to_query(name_input, query);
-    make_full_url(strcasecmp(choice_input, OPTION_MOVIE)? OPTION_TV_SHOW : OPTION_MOVIE, query, url);
-    printf("%s\n", url);
-    show_list(url, choice_input);
+    do{
+        memset(url, 0, sizeof(url));
+        memset(query, 0, sizeof(query));
+        memset(choice_input, 0, sizeof(choice_input));
+        memset(name_input, 0, sizeof(name_input));
+
+        strncpy(url, "https://api.themoviedb.org/3/search/", sizeof(url));
+        strncpy(query, "?query=", sizeof(query));
+
+        printf("Would you like to search for a TV show or movie?"
+                "(type tv or movie)\n");
+        string_clean(choice_input);
+        //printf("%d\n%d\n",strcasecmp(choice_input, OPTION_MOVIE),strcasecmp(choice_input, OPTION_TV_SHOW));
+        while(strcasecmp(choice_input, OPTION_MOVIE) && strcasecmp(choice_input, OPTION_TV_SHOW)){
+            printf("Choose a valid option. Type tv or move.\n");
+            memset(choice_input, 0, sizeof(choice_input));
+            string_clean(choice_input);
+        }
+        //printf("%s\n", choice_input);
+
+        printf("Enter the name of the %s\n", (strcasecmp(choice_input, OPTION_MOVIE)? "tv show" : "movie" ));
+        string_clean(name_input);
+        string_to_query(name_input, query);
+        make_full_url(strcasecmp(choice_input, OPTION_MOVIE)? OPTION_TV_SHOW : OPTION_MOVIE, query, url);
+        //printf("%s\n", url);
+        //show_list(url, choice_input, name_input);
+    }while(show_list(url, choice_input, name_input));
 
 }
 
@@ -135,19 +130,19 @@ struct memory get_request_list(char const * const url){
     curl_slist_free_all(header);
     curl_easy_cleanup(cinit);
     curl_global_cleanup();
-    //printf("%s\n", data.response);
 
     return data;
 }
 
-void show_list(const char * const url, const char * const option){
+bool show_list(const char * const url, const char * const option, 
+        const char * const name){
 
     struct memory data = get_request_list(url);
-    //printf("%s\n", data.response);
+    long int id = 0;
     int counter = 1;
     cJSON *json = cJSON_Parse(data.response);
-    char *string = cJSON_Print(json);
-    printf("%s\n", string);
+    /*char *string = cJSON_Print(json);
+    printf("%s\n", string);*/
     if(json == NULL){
         const char *error_ptr = cJSON_GetErrorPtr();
         if (error_ptr != NULL)
@@ -162,70 +157,50 @@ void show_list(const char * const url, const char * const option){
     cJSON *head = all_list;
     
     cJSON *total_results = cJSON_GetObjectItemCaseSensitive(json, "total_results");
-    printf("is number %d\n", total_results->valueint);
-    cJSON *results = cJSON_GetObjectItemCaseSensitive(json, "results");
-    printf("array size: %d\n", cJSON_GetArraySize(results));
-    //printf("icicicic\n");
-    //printf("what what%s\n", results->string);
     
+    if(total_results->valueint > 0){
+        cJSON *results = cJSON_GetObjectItemCaseSensitive(json, "results");    
     
-    cJSON_ArrayForEach(chunk, results){
-        printf("LOLOLOLOL");
-        /*temp = cJSON_GetArrayItem(choonk, 3);
-        all_list->valueint = temp->valueint;
-        temp = cJSON_GetArrayItem(choonk, 5);
-        all_list->valuestring = temp->valuestring;*/
-        temp = cJSON_GetObjectItemCaseSensitive(chunk, "id");   
-        all_list->valueint = temp->valueint;
-        temp = cJSON_GetObjectItemCaseSensitive(chunk, 
-                (strcasecmp(option, OPTION_MOVIE)? "original_name": "original_title"));
-        all_list->valuestring = temp->valuestring;
-        temp = cJSON_GetObjectItemCaseSensitive(chunk, "overview");
-        all_list->string = temp->valuestring;
+        cJSON_ArrayForEach(chunk, results){
+            temp = cJSON_GetObjectItemCaseSensitive(chunk, "id");   
+            all_list->valueint = temp->valueint;
+            temp = cJSON_GetObjectItemCaseSensitive(chunk, 
+                    (strcasecmp(option, OPTION_MOVIE)? "original_name": "original_title"));
+            all_list->valuestring = temp->valuestring;
+            if(!strcasecmp(name, all_list->valuestring)) id = (long int)all_list->valueint; break;
+            temp = cJSON_GetObjectItemCaseSensitive(chunk, "overview");
+            all_list->string = temp->valuestring;
         
-        if(counter <= total_results->valueint){
-            printf("here\n");
-            all_list->next = (cJSON *)calloc(1, sizeof(*all_list));
-            all_list = all_list->next;
-            counter++;
-        }else{
-            break;
+            if(counter <= total_results->valueint){
+                all_list->next = (cJSON *)calloc(1, sizeof(*all_list));
+                all_list = all_list->next;
+                counter++;
+            }else{
+                break;
+            }
         }
-        /*if(all_list->next == NULL){
-            printf("Aint nothing");
-        }*/
-        /*printf("ID: %d\n"
-               "Valuestring: %s\n"
-               "String: %s\n"
-                , all_list->valueint, all_list->valuestring, all_list->string);*/
-    }
-    all_list = head;
-    while(all_list->next != NULL){
-        printf("ID: %d\n"
-               "Valuestring: %s\n"
-               "String: %s\n"
-                , all_list->valueint, all_list->valuestring, all_list->string);
-        all_list = all_list->next;
-    }
-    printf("array size: %d\n", cJSON_GetArraySize(results));
 
-    //printf("ID: %d\n", total_pages->valueint);
-    free(json);
-    free(string);
-    free(chunk);
-    free(temp);
-    free(total_results);
-    all_list = head;
-   // while(head->next != NULL){
-        //head = all_list->next;
+        all_list = head;
+        free(json);
+        //free(string);
+        free(chunk);
+        free(temp);
+        free(total_results);
+        all_list = head;
         free(all_list);
-    //}
-    //free(string);
-
     
-    //printf("%s\n", key);
-    //printf("pointer is: %c\n", *((char*)list+sizeof(char)));
-    //printf("%ld\n", sizeof((char*)list));
+        json = NULL;
+        //string = NULL;
+        chunk = NULL;
+        temp = NULL;
+        total_results = NULL;
+        all_list = NULL;
+        get_url(id, option);
+        return false;
+    }else{
+        printf("No result, please try again.\n");
+        return true;
+    }
 }
 
 void get_key(char *key){
@@ -240,27 +215,11 @@ void get_key(char *key){
         perror("Error reading file");
         exit(1);
     }
-    printf("length: %ld\n", strlen(key));
+    //printf("length: %ld\n", strlen(key));
     key[strlen(key)-1] = '\0';
-    printf("length: %ld\n", strlen(key));
+    //printf("length: %ld\n", strlen(key));
 
     fclose(file);
 
 }
-
-/*static size_t cb(char *data, size_t size, size_t nmemb, void *clientp){
-    size_t realsize = nmemb;
-    struct memory *mem = (struct memory *)clientp;
-
-    char *ptr = realloc(mem->response, mem->size + realsize + 1);
-    if(!ptr)
-        exit(1);
-
-    mem->response = ptr;
-    memcpy(&(mem->response[mem->size]), data, realsize);
-    mem->size += realsize;
-    mem->response[mem->size] = 0;
-    return realsize;
-}*/
-
 
