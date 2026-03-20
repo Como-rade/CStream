@@ -20,9 +20,9 @@ For all the naming standards, I will be following [C Coding Standard by CMU](htt
 - [x] Added cJSON library, finished curl request
 - [x] Completed fetching data from TMDB
 - [x] Completed user input
-- [x] Watch movies  
+- [x] Watch movies    
+- [x] Watch TV shows  
 To do:  
-- [ ] Watch TV shows
 - [ ] Implement some sort of cache
 - [ ] Choice to view all the options fetched
 - [ ] Implement some sort of CLI

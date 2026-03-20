@@ -13,10 +13,21 @@
 #include "cJSON.h"
 #include <ctype.h>
 
+typedef struct{
+    char season[INPUT_LENGTH];
+    char episode[INPUT_LENGTH];
+}sae; //season and episode
+
 void get_user_input();
-struct memory get_request_list(const char * const url);
-bool show_list(const char * const url, const char * const option, 
-        const char * const name);
+/*
+ Double const meaning: first one means the data pointed to this pointer may not be changed
+ Second means the pointer itself may not be changed
+
+ Here, since url is subject to change but the pointer itself not, it may be good practice to just put
+ the second const.
+ */
+struct memory get_request_list(char *const url);
+void show_list(char *url, char *const option, const char *name, sae sae);
 void get_key(char *key);
 
 #endif
