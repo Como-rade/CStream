@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "lib/request.h"
-#include <string.h>
+//#include <string.h>
 
 int main(void){
     char isfiddy[50] = {'a','b'};

@@ -6,6 +6,8 @@
 #define OPTION_MOVIE "movie"
 #define OPTION_TV_SHOW "tv"
 
+#define check_option(a, option) strcasecmp(a, option)
+
 #include <stdbool.h>
 #include <curl/curl.h>
 #include <stdlib.h>

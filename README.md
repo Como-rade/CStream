@@ -34,7 +34,7 @@ ___
 To run it:  
 In the main directory;  
 gcc main.c lib/\*.c -c  
-gcc \*.o -o main  
+gcc \*.o -o main -lcurl
 ./main  
 
 Get a free API key on [TMDB](https://www.themoviedb.org/?language=en-CA)  

@@ -32,7 +32,8 @@ void get_url(long int id, char *const option, sae sae){
     strcat(url, int_to_string);        
     url[strlen(url)] = '/';
 
-    if(!strcasecmp(option, OPTION_TV_SHOW)){
+    if(!/*strcasecmp(option, OPTION_TV_SHOW)*/
+            check_option(option, OPTION_TV_SHOW)){
        strcat(url, sae.season);
         url[strlen(url)] = '/';
         strcat(url, sae.episode);
@@ -121,11 +122,24 @@ void get_user_input(){
                 "(type tv or movie)\n");
         string_clean(choice_input);
         //printf("%d\n%d\n",strcasecmp(choice_input, OPTION_MOVIE),strcasecmp(choice_input, OPTION_TV_SHOW));
-        while(strcasecmp(choice_input, OPTION_MOVIE) && strcasecmp(choice_input, OPTION_TV_SHOW)){
+        while(/*strcasecmp(choice_input, OPTION_MOVIE)*/ 
+               check_option(choice_input, OPTION_MOVIE) && /*strcasecmp(choice_input, OPTION_TV_SHOW)*/
+               check_option(choice_input, OPTION_TV_SHOW)){
             printf("Choose a valid option. Type tv or move.\n");
             memset(choice_input, 0, sizeof(choice_input));
             string_clean(choice_input);
         }
+
+/*        if(!strcasecmp(choice_input, OPTION_TV_SHOW)){ 
+           get_season_or_episode("season", &season_and_episode);
+           get_season_or_episode("episode", &season_and_episode);
+           //printf("season %s n episode %s\n", season_and_episode.season, 
+           //        season_and_episode.episode);
+        }
+        //printf("%s\n", choice_input);*/
+        printf("Enter the name of the %s\n", /*(strcasecmp(choice_input, OPTION_MOVIE)*/
+            check_option(choice_input, OPTION_MOVIE)? "tv show" : "movie" );
+        string_clean(name_input);
 
         if(!strcasecmp(choice_input, OPTION_TV_SHOW)){ 
            get_season_or_episode("season", &season_and_episode);
@@ -134,11 +148,10 @@ void get_user_input(){
            //        season_and_episode.episode);
         }
         //printf("%s\n", choice_input);
-
-        printf("Enter the name of the %s\n", (strcasecmp(choice_input, OPTION_MOVIE)? "tv show" : "movie" ));
-        string_clean(name_input);
+        
         string_to_query(name_input, query);
-        make_full_url(strcasecmp(choice_input, OPTION_MOVIE)? OPTION_TV_SHOW : OPTION_MOVIE, query, url);
+        make_full_url(/*strcasecmp(choice_input, OPTION_MOVIE)*/
+            check_option(choice_input, OPTION_MOVIE)? OPTION_TV_SHOW : OPTION_MOVIE, query, url);
         //printf("%s\n", url);
         //show_list(url, choice_input, name_input);
         show_list(url, choice_input, name_input, season_and_episode);
